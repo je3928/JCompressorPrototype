@@ -27,7 +27,8 @@ JCompressorAudioProcessor::JCompressorAudioProcessor()
                      #endif
                        ), valuetree (*this, nullptr, "PARAMETERS",
                                 { std::make_unique<AudioParameterFloat> ("Thresh", "THRESH", NormalisableRange<float> (-60.0f, 0.0f), -20), std::make_unique<AudioParameterFloat> ("Attack", "ATTACK", NormalisableRange<float> (3.0f, 500.0f), 3),std::make_unique<AudioParameterFloat> ("Release", "RELEASE", NormalisableRange<float> (20.0f, 1000.0f), 500),std::make_unique<AudioParameterFloat> ("Makeup", "MAKEUP", NormalisableRange<float> (0.0f, 12.0f), 0),
-                                    std::make_unique<AudioParameterFloat> ("Ratio", "RATIO", NormalisableRange<float> (2.0f, 20.0f), 2)})
+                                    std::make_unique<AudioParameterFloat> ("Ratio", "RATIO", NormalisableRange<float> (2.0f, 20.0f), 2),
+                           std::make_unique<AudioParameterFloat> ("Gr", "GR", NormalisableRange<float> (-60.f, 0.0f), 0)})
 
 #endif
 {
@@ -155,6 +156,7 @@ void JCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     auto mk = valuetree.getRawParameterValue("Makeup");
     auto rt = valuetree.getRawParameterValue("Ratio");
     
+    
     double thres = th->load();
     double attack = at->load();
     double release = rl->load();
@@ -191,6 +193,8 @@ void JCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
     
+    auto grm = valuetree.getParameterAsValue("Gr");
+    
     auto* channelDataL = buffer.getWritePointer(0);
     auto* channelDataR = buffer.getWritePointer(1);
     
@@ -217,9 +221,8 @@ void JCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         if (detectorr > thres)
             ynr = (thres + ((detectorr - thres)/ratio));
         
-        double gnl = dB2Raw(ynl - detectorl);
-        double gnr = dB2Raw(ynr - detectorr);
-    
+        gnl = dB2Raw(ynl - detectorl);
+        gnr = dB2Raw(ynr - detectorr);
         
         double makeupcooked = dB2Raw(makeup);
         
@@ -237,8 +240,8 @@ void JCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         
     
     }
-
     
+    grm = raw2dB(gnl);
 }
 
 //==============================================================================

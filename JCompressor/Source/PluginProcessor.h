@@ -58,8 +58,12 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+  
+    AudioProcessorValueTreeState valuetree;
     
-    juce::AudioProcessorValueTreeState valuetree;
+    double gnl, gnr = 0.0000000;
+    
+    SimpleLPF lpf;
     
     AudioDetector envdetectl, envdetectr;
     
